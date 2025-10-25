@@ -19,7 +19,9 @@ jobs:
           distribution: 'temurin'
 
       - name: Build Maven Project
-        run: mvn clean package -DskipTests
+        run: |
+          cd backend
+          mvn clean package -DskipTests
 
       - name: Copy Jar file to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -28,7 +30,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2DEPLOY }}
           passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
-          source: "target/*.jar"
+          source: "backend/target/*.jar"
           target: ${{ secrets.PROJECT_DIR }}
 
       - name: Run app on EC2
@@ -36,7 +38,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2DEPLOYONE }}
+          key: ${{ secrets.EC2DEPLOY }}
           passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
           script: |
             sudo pkill -f 'java -jar' || true
