@@ -1,45 +1,45 @@
-name: CI/CD Deployment
+name: CI/CD Pipeline to EC2
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up JDK
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    - name: Grant execute permission for Gradle
-      run: chmod +x gradlew
+      - name: Build Maven Project
+        run: mvn clean package -DskipTests
 
-    - name: Build JAR
-      run: ./gradlew clean build -x test
+      - name: Copy Jar file to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2DEPLOY }}
+          passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
+          source: "target/*.jar"
+          target: ${{ secrets.PROJECT_DIR }}
 
-    - name: Copy JAR to EC2
-      uses: appleboy/scp-action@v0.1.7
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        source: "build/libs/demo-0.0.1-SNAPSHOT.jar"
-        target: "/home/ubuntu/projects/app.jar"
-
-    - name: Restart Spring Boot service
-      uses: appleboy/ssh-action@v0.1.10
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          pkill -f app.jar || true
-          nohup java -jar /home/ubuntu/projects/app.jar > /home/ubuntu/projects/app.log 2>&1 &
-          echo "✅ Application restarted!"
+      - name: Run app on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2DEPLOY }}
+          passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
+          script: |
+            sudo pkill -f 'java -jar' || true
+            cd ${{ secrets.PROJECT_DIR }}
+            nohup java -jar *.jar > app.log 2>&1 &
+            echo "✅ Application Started Successfully!"
