@@ -32,7 +32,7 @@ jobs:
         source: "build/libs/*.jar"
         target: "/home/ubuntu/projects"
 
-    - name: SSH Deploy on EC2
+    - name: SSH Deploy on EC2 using systemd
       uses: appleboy/ssh-action@v0.1.7
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -41,14 +41,15 @@ jobs:
         script: |
           cd /home/ubuntu/projects
           
-          # ✅ Stop running app if exists
-          sudo pkill -f "java" || true
-          
-          # ✅ Remove old jars (keep only latest deploy)
-          ls -t *.jar | tail -n +2 | xargs rm -f || true
-          
-          # ✅ Pick newest jar & run
+          # ✅ Find newest JAR file
           JAR_FILE=$(ls -t *.jar | head -n 1)
-          chmod +x "$JAR_FILE"
-          nohup java -jar "$JAR_FILE" > app.log 2>&1 &
-          echo "Application started: $JAR_FILE"
+          
+          # ✅ Update systemd ExecStart to latest jar
+          sudo sed -i "s|ExecStart=.*|ExecStart=/usr/bin/java -jar /home/ubuntu/projects/$JAR_FILE|" /etc/systemd/system/springboot.service
+          
+          # ✅ Restart service properly
+          sudo systemctl daemon-reload
+          sudo systemctl restart springboot
+          
+          # ✅ Show service status
+          sudo systemctl status springboot --no-pager
