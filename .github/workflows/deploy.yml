@@ -28,17 +28,17 @@ jobs:
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ubuntu
-        key: ${{ secrets.EC2_SSH_KEY }}
+        key: ${{ secrets.EC2DEPLOYONE }}
         source: "build/libs/*.jar"
-        target: "~/projects"
+        target: "/home/ubuntu/projects"
 
     - name: SSH Deploy on EC2
       uses: appleboy/ssh-action@v0.1.7
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ubuntu
-        key: ${{ secrets.EC2_SSH_KEY }}
+        key: ${{ secrets.EC2DEPLOYONE }}
         script: |
-          cd ~/projects
+          cd /home/ubuntu/projects
           sudo pkill -f "java" || true
           nohup java -jar *.jar > app.log 2>&1 &
