@@ -15,4 +15,8 @@ public class OrderDetailsController {
     public List<Orderdetails> list() {
         return service.listAll();
     }
+    @GetMapping("/")
+public String hello() {
+    return "Hello";
+}
 }
