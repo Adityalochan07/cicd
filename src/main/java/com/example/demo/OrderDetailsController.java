@@ -15,7 +15,7 @@ public class OrderDetailsController {
     public List<Orderdetails> list() {
         return service.listAll();
     }
-     @GetMapping("/")
+     @GetMapping("/yo")
 public String hello() {
     return "Hello";
 }
