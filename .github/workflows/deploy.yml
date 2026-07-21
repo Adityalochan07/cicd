@@ -37,7 +37,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "build/libs/*.jar"
-          target: "/opt/crud-app"
+          target: "/opt/cicd"
 
       # 6. Restart the application on EC2
       - name: Restart Application
