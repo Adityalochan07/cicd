@@ -40,14 +40,20 @@ jobs:
           target: "/opt/cicd"
 
       # 6. Restart the application on EC2
-      - name: Restart Application
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            pkill -f 'java -jar' || true
-            cd /opt/cicd
-            JAR=$(ls *.jar | head -n 1)
-            nohup java -jar $JAR > app.log 2>&1 &
+- name: Restart Application
+  uses: appleboy/ssh-action@v1.0.3
+  with:
+    host: ${{ secrets.EC2_HOST }}
+    username: ${{ secrets.EC2_USERNAME }}
+    key: ${{ secrets.EC2_SSH_KEY }}
+    script: |
+      cd /opt/cicd
+
+      pkill -f demo-0.0.1-SNAPSHOT.jar || true
+      sleep 2
+
+      nohup java -jar demo-0.0.1-SNAPSHOT.jar > app.log 2>&1 < /dev/null &
+
+      sleep 5
+
+      ps -ef | grep demo-0.0.1-SNAPSHOT.jar || true
