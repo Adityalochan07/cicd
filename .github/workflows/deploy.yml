@@ -48,6 +48,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             pkill -f 'java -jar' || true
-            cd /opt/crud-app
+            cd /opt/cicd
             JAR=$(ls *.jar | head -n 1)
             nohup java -jar $JAR > app.log 2>&1 &
