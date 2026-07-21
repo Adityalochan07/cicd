@@ -24,5 +24,10 @@ public String hello() {
 public String hellWorld() {
     return "Hello World";
 }
+
+     @GetMapping("/honey-singh")
+public String hellWorld1() {
+    return "Hello World";
+}
     
 }
