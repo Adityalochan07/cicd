@@ -19,5 +19,10 @@ public class OrderDetailsController {
 public String hello() {
     return "Hello";
 }
+
+     @GetMapping("/honey")
+public String hellWorld() {
+    return "Hello World";
+}
     
 }
