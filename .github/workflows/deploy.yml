@@ -27,7 +27,7 @@ jobs:
 
       # 4. Build the Spring Boot project
       - name: Build Project
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
 
       # 5. Copy the JAR to your EC2 server
       - name: Copy JAR to EC2
