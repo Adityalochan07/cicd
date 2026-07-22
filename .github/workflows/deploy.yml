@@ -57,8 +57,8 @@ jobs:
             echo "Files:"
             ls -lh
 
-            # Match only the Java process; [j]ava avoids matching this script
-            PID=$(ps -ef | grep '[j]ava -jar .*demo-0.0.1-SNAPSHOT.jar' | awk '{print $2}' || true)
+            # Only match real java processes (not this SSH/bash script)
+            PID=$(ps -C java -o pid=,args= 2>/dev/null | grep 'demo-0.0.1-SNAPSHOT.jar' | awk '{print $1}' || true)
 
             if [ -n "$PID" ]; then
               echo "Stopping existing application (PID=$PID)"
@@ -81,7 +81,7 @@ jobs:
 
             sleep 10
 
-            PID=$(ps -ef | grep '[j]ava -jar .*demo-0.0.1-SNAPSHOT.jar' | awk '{print $2}' || true)
+            PID=$(ps -C java -o pid=,args= 2>/dev/null | grep 'demo-0.0.1-SNAPSHOT.jar' | awk '{print $1}' || true)
 
             if [ -n "$PID" ]; then
               echo "Application started successfully."
