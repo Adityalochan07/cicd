@@ -29,5 +29,10 @@ public String hellWorld() {
 public String hellWorld1() {
     return "Hello World";
 }
+
+     @GetMapping("/honey-singhh")
+public String hellWorld2() {
+    return "Hello World";
+}
     
 }
