@@ -38,6 +38,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "build/libs/demo-0.0.1-SNAPSHOT.jar"
           target: "/opt/cicd"
+          strip_components: 2
 
       # Restart application
       - name: Restart Application
@@ -47,6 +48,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
             cd /opt/cicd
 
             echo "Current Directory:"
@@ -55,30 +57,39 @@ jobs:
             echo "Files:"
             ls -lh
 
-            PID=$(pgrep -f "demo-0.0.1-SNAPSHOT.jar")
+            # Match only the Java process; [j]ava avoids matching this script
+            PID=$(ps -ef | grep '[j]ava -jar .*demo-0.0.1-SNAPSHOT.jar' | awk '{print $2}' || true)
 
-            if [ ! -z "$PID" ]; then
+            if [ -n "$PID" ]; then
               echo "Stopping existing application (PID=$PID)"
-              kill -15 $PID
+              kill -15 $PID || true
               sleep 5
+              # Force kill if still running
+              for p in $PID; do
+                if kill -0 "$p" 2>/dev/null; then
+                  echo "Force killing PID=$p"
+                  kill -9 "$p" || true
+                fi
+              done
             else
               echo "No existing application found."
             fi
 
             echo "Starting application..."
-            nohup java -jar demo-0.0.1-SNAPSHOT.jar > app.log 2>&1 < /dev/null &
+            nohup java -jar /opt/cicd/demo-0.0.1-SNAPSHOT.jar > /opt/cicd/app.log 2>&1 < /dev/null &
+            disown || true
 
             sleep 10
 
-            PID=$(pgrep -f "demo-0.0.1-SNAPSHOT.jar")
+            PID=$(ps -ef | grep '[j]ava -jar .*demo-0.0.1-SNAPSHOT.jar' | awk '{print $2}' || true)
 
-            if [ ! -z "$PID" ]; then
+            if [ -n "$PID" ]; then
               echo "Application started successfully."
               echo "Running PID: $PID"
               exit 0
             else
               echo "Application failed to start."
               echo "========== APP LOG =========="
-              cat app.log
+              cat /opt/cicd/app.log || true
               exit 1
             fi
